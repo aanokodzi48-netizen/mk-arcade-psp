@@ -1,57 +1,14 @@
 name: Build PSP EBOOT
-
 on: [push]
-
 jobs:
   build:
     runs-on: ubuntu-latest
     container: pspdev/pspdev:latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Download and build SDL for PSP
-        run: |
-          cd /tmp
-          wget -q https://www.libsdl.org/release/SDL-1.2.15.tar.gz
-          tar xzf SDL-1.2.15.tar.gz
-          cd SDL-1.2.15
-          # Подменяем config.sub/config.guess на свежие из GNU, которые знают про psp
-          rm -f config.sub config.guess
-          wget -q https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD -O config.sub
-          wget -q https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD -O config.guess
-          chmod +x config.sub config.guess
-          export PATH=/usr/local/pspdev/bin:$PATH
-          ./configure \
-            --host=mipsel-linux-gnu \
-            --build=x86_64-linux-gnu \
-            CC="psp-gcc" \
-            CXX="psp-g++" \
-            AR="psp-ar" \
-            RANLIB="psp-ranlib" \
-            STRIP="psp-strip" \
-            --prefix=/usr/local/pspdev/psp/sdk \
-            --disable-video-x11 \
-            --enable-video-psp \
-            --disable-dynamic-load \
-            --disable-nasm \
-            --disable-joystick \
-            --disable-cdrom \
-            --disable-timer \
-            --disable-thread \
-            --disable-events \
-            --disable-assembly \
-            ac_cv_lib_c_c9snprintf=no
-          make -j$(nproc)
-          make install
-
-      - name: Configure game
-        run: cmake -B build
-
-      - name: Build game
-        run: cmake --build build
-
-      - name: Upload EBOOT.PBP
-        uses: actions/upload-artifact@v4
+      - run: cmake -B build
+      - run: cmake --build build
+      - uses: actions/upload-artifact@v4
         with:
           name: MK-PSP-EBOOT
           path: build/EBOOT.PBP
