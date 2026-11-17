@@ -8,10 +8,47 @@ jobs:
     container: pspdev/pspdev:latest
     steps:
       - uses: actions/checkout@v4
-      - name: Configure CMake
+
+      - name: Install SDL dependencies
+        run: |
+          cd /usr/local/pspdev/psp/sdk
+          git clone --depth=1 https://github.com/PSP-Dev/Homebrew-SDL.git sdl-home || true
+          ls -la sdl-home || echo "no homebrew-sdl"
+
+      - name: Download and build SDL for PSP
+        run: |
+          cd /tmp
+          wget -q https://www.libsdl.org/release/SDL-1.2.15.tar.gz
+          tar xzf SDL-1.2.15.tar.gz
+          cd SDL-1.2.15
+          export PATH=/usr/local/pspdev/bin:$PATH
+          ./configure \
+            --host=psp \
+            CC=psp-gcc \
+            CXX=psp-g++ \
+            AR=psp-ar \
+            RANLIB=psp-ranlib \
+            --prefix=/usr/local/pspdev/psp/sdk \
+            --disable-video-x11 \
+            --enable-video-psp \
+            --disable-dynamic-load \
+            --disable-nasm \
+            --disable-joystick \
+            --disable-cdrom \
+            --disable-timer \
+            --disable-thread \
+            --disable-events \
+            --disable-assembly \
+            ac_cv_lib_c_c9snprintf=no
+          make -j$(nproc)
+          make install
+
+      - name: Configure game
         run: cmake -B build
-      - name: Build
+
+      - name: Build game
         run: cmake --build build
+
       - name: Upload EBOOT.PBP
         uses: actions/upload-artifact@v4
         with:
