@@ -1,0 +1,19 @@
+name: Build PSP EBOOT
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: pspdev/pspdev:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure CMake
+        run: cmake -B build
+      - name: Build
+        run: cmake --build build
+      - name: Upload EBOOT.PBP
+        uses: actions/upload-artifact@v4
+        with:
+          name: MK-PSP-EBOOT
+          path: build/EBOOT.PBP
