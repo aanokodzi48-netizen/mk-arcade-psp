@@ -1,4 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
+
+set(CMAKE_C_COMPILER psp-gcc)
+set(CMAKE_CXX_COMPILER psp-g++)
+
 project(mkpsp CXX)
 add_executable(mkpsp src/main.cpp)
 target_link_libraries(mkpsp SDL SDL_image SDL_ttf SDL_mixer pspdisplay pspctrl pspdebug pspkernel)
