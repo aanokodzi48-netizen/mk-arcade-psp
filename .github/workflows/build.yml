@@ -9,25 +9,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install SDL dependencies
-        run: |
-          cd /usr/local/pspdev/psp/sdk
-          git clone --depth=1 https://github.com/PSP-Dev/Homebrew-SDL.git sdl-home || true
-          ls -la sdl-home || echo "no homebrew-sdl"
-
       - name: Download and build SDL for PSP
         run: |
           cd /tmp
           wget -q https://www.libsdl.org/release/SDL-1.2.15.tar.gz
           tar xzf SDL-1.2.15.tar.gz
           cd SDL-1.2.15
+          # Подменяем config.sub/config.guess на свежие из GNU, которые знают про psp
+          rm -f config.sub config.guess
+          wget -q https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD -O config.sub
+          wget -q https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD -O config.guess
+          chmod +x config.sub config.guess
           export PATH=/usr/local/pspdev/bin:$PATH
           ./configure \
-            --host=psp \
-            CC=psp-gcc \
-            CXX=psp-g++ \
-            AR=psp-ar \
-            RANLIB=psp-ranlib \
+            --host=mipsel-linux-gnu \
+            --build=x86_64-linux-gnu \
+            CC="psp-gcc" \
+            CXX="psp-g++" \
+            AR="psp-ar" \
+            RANLIB="psp-ranlib" \
+            STRIP="psp-strip" \
             --prefix=/usr/local/pspdev/psp/sdk \
             --disable-video-x11 \
             --enable-video-psp \
